@@ -18,6 +18,31 @@ const STATUS_LABELS: Record<AIStatus, ReactNode> = {
   error: "AI Error",
 };
 
+// Helper function to format text with ** ** as bold
+const formatFeedback = (text: string): ReactNode[] => {
+  const parts: ReactNode[] = [];
+  let currentIndex = 0;
+  const regex = /\*\*([^*]+)\*\*/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > currentIndex) {
+      parts.push(text.substring(currentIndex, match.index));
+    }
+    // Add the bold text
+    parts.push(<strong key={match.index}>{match[1]}</strong>);
+    currentIndex = regex.lastIndex;
+  }
+
+  // Add remaining text
+  if (currentIndex < text.length) {
+    parts.push(text.substring(currentIndex));
+  }
+
+  return parts.length > 0 ? parts : [text];
+};
+
 export const AIResponse = ({
   open,
   status,
@@ -58,7 +83,7 @@ export const AIResponse = ({
           )}
           {status === "success" && (
             <pre className="ai-response__content">
-              {feedback ?? "AI did not return any feedback."}
+              {feedback ? formatFeedback(feedback) : "AI did not return any feedback."}
             </pre>
           )}
           {status === "error" && (

@@ -30,7 +30,7 @@
       grid-area: tst;
 
       main {
-        > .Editor {
+        >.Editor {
           max-height: 50%;
         }
       }
@@ -52,7 +52,7 @@
       grid-area: tst;
 
       main {
-        > .Editor {
+        >.Editor {
           max-height: 40%;
         }
       }
@@ -73,12 +73,12 @@ text {
 // AI trigger button - matches folder button styling
 .ai-trigger-button {
   font-size: 1.2rem;
-  
+
   // Ensure tooltip works on button hover (same as folder button)
   &[data-tooltip] {
     position: relative;
   }
-  
+
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
@@ -145,6 +145,7 @@ text {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

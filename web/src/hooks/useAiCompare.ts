@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 
-const AI_ENDPOINT = "https://nand2tetrisai-881742200158.europe-west1.run.app/compare";
+//const AI_ENDPOINT = "https://nand2tetrisai-881742200158.europe-west1.run.app/compare";
+const AI_ENDPOINT = "http://localhost:3000/compare";
 const VALID_PROJECTS = ["01", "02", "03", "05"];
 
 interface UseAiCompareParams {
