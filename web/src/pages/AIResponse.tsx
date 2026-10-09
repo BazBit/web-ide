@@ -18,30 +18,56 @@ const STATUS_LABELS: Record<AIStatus, ReactNode> = {
   error: "AI Error",
 };
 
-// Helper function to format text with ** ** as bold
-const formatFeedback = (text: string): ReactNode[] => {
-  const parts: ReactNode[] = [];
-  let currentIndex = 0;
-  const regex = /\*\*([^*]+)\*\*/g;
-  let match: RegExpExecArray | null;
+type Formatter = (text: string, key: string) => ReactNode[];
 
-  while ((match = regex.exec(text)) !== null) {
-    // Add text before the match
-    if (match.index > currentIndex) {
-      parts.push(text.substring(currentIndex, match.index));
+// Splits text on a global pattern: matches go through renderMatch, the text between them through renderRest
+const splitOn =
+  (
+    pattern: RegExp,
+    renderMatch: (inner: string, key: string) => ReactNode,
+    renderRest: Formatter,
+  ): Formatter =>
+  (text, key) => {
+    const parts: ReactNode[] = [];
+    let last = 0;
+    for (const match of text.matchAll(pattern)) {
+      const index = match.index ?? 0;
+      if (index > last) {
+        parts.push(...renderRest(text.slice(last, index), `${key}-${last}`));
+      }
+      parts.push(renderMatch(match[1], `${key}-${index}`));
+      last = index + match[0].length;
     }
-    // Add the bold text
-    parts.push(<strong key={match.index}>{match[1]}</strong>);
-    currentIndex = regex.lastIndex;
-  }
+    if (last < text.length) {
+      parts.push(...renderRest(text.slice(last), `${key}-${last}`));
+    }
+    return parts;
+  };
 
-  // Add remaining text
-  if (currentIndex < text.length) {
-    parts.push(text.substring(currentIndex));
-  }
+// **bold**
+const formatBold = splitOn(
+  /\*\*([^*]+)\*\*/g,
+  (inner, key) => <strong key={key}>{inner}</strong>,
+  (text) => [text],
+);
 
-  return parts.length > 0 ? parts : [text];
-};
+// `inline code`, which may contain **bold**
+const formatInline = splitOn(
+  /`([^`\n]+)`/g,
+  (inner, key) => <code key={key}>{formatBold(inner, key)}</code>,
+  formatBold,
+);
+
+// ```lang fenced blocks```, which may contain **bold**
+export const formatFeedback = splitOn(
+  /```[^\n`]*\n?([\s\S]*?)\n?```\n?/g,
+  (inner, key) => (
+    <code key={key} className="ai-response__code-block">
+      {formatBold(inner, key)}
+    </code>
+  ),
+  formatInline,
+);
 
 export const AIResponse = ({
   open,
@@ -83,7 +109,7 @@ export const AIResponse = ({
           )}
           {status === "success" && (
             <pre className="ai-response__content">
-              {feedback ? formatFeedback(feedback) : "AI did not return any feedback."}
+              {feedback ? formatFeedback(feedback, "ai") :"AI did not return any feedback."}
             </pre>
           )}
           {status === "error" && (

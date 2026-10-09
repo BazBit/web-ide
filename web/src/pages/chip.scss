@@ -30,7 +30,7 @@
       grid-area: tst;
 
       main {
-        >.Editor {
+        > .Editor {
           max-height: 50%;
         }
       }
@@ -52,7 +52,7 @@
       grid-area: tst;
 
       main {
-        >.Editor {
+        > .Editor {
           max-height: 40%;
         }
       }
@@ -127,6 +127,19 @@ text {
     max-height: 40vh;
     overflow: auto;
     white-space: pre-wrap;
+
+    // Override the global `pre > code` block styling for inline code
+    code {
+      display: inline;
+      padding: 0.1rem 0.3rem;
+      white-space: pre-wrap;
+    }
+
+    .ai-response__code-block {
+      display: block;
+      margin: 0.25rem 0;
+      padding: 0.5rem 0.75rem;
+    }
   }
 
   .ai-response__error {
