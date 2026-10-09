@@ -30,7 +30,7 @@
       grid-area: tst;
 
       main {
-        > .Editor {
+        >.Editor {
           max-height: 50%;
         }
       }
@@ -52,7 +52,7 @@
       grid-area: tst;
 
       main {
-        > .Editor {
+        >.Editor {
           max-height: 40%;
         }
       }
@@ -68,4 +68,85 @@ polygon {
 
 text {
   fill: var(--color);
+}
+
+// AI trigger button - matches folder button styling
+.ai-trigger-button {
+  font-size: 1.2rem;
+
+  // Ensure tooltip works on button hover (same as folder button)
+  &[data-tooltip] {
+    position: relative;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.ai-response-dialog {
+  max-width: min(640px, 90vw);
+
+  article {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .ai-response__title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+  }
+
+  main {
+    min-height: 120px;
+  }
+
+  .ai-response__loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .spinner {
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  .ai-response__content {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    max-height: 40vh;
+    overflow: auto;
+    white-space: pre-wrap;
+  }
+
+  .ai-response__error {
+    color: var(--error, #a33);
+    font-weight: 600;
+  }
+
+  footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
