@@ -3,7 +3,14 @@ import { useCallback, useEffect } from "react";
 const AI_ENDPOINT =
   "https://nand2tetrisai-881742200158.europe-west1.run.app/compare";
 //const AI_ENDPOINT = "http://localhost:3000/compare";
-const VALID_PROJECTS = ["01", "02", "03", "05"];
+
+// Projects the AI service has reference solutions for
+const AI_PROJECTS = ["01", "02", "03", "05"];
+
+export const isAiProject = (project: string) => AI_PROJECTS.includes(project);
+
+export const AI_UNAVAILABLE_MESSAGE =
+  "AI hints are available for projects 1, 2, 3 and 5.";
 
 interface UseAiCompareParams {
   project: string;
@@ -15,6 +22,17 @@ interface UseAiCompareHandlers {
   onStart?: () => void;
   onSuccess?: (feedback: string) => void;
   onError?: (message: string) => void;
+}
+
+// Turns the service's HTTP status into something a student can act on
+function describeServerError(status: number, chipName: string): string {
+  if (status === 404) {
+    return `There's no reference solution for ${chipName} yet, so the AI can't check it.`;
+  }
+  if (status === 429 || status === 503) {
+    return "The AI is busy right now. Try again in a minute.";
+  }
+  return "The AI couldn't answer this time. Try again.";
 }
 
 /**
@@ -30,14 +48,14 @@ export function useAiCompare(
   handlers: UseAiCompareHandlers = {},
 ) {
   const validateInputs = useCallback((): string | undefined => {
-    if (!VALID_PROJECTS.includes(project)) {
-      return `AI feature is only available for projects 1, 2, 3, or 5. Current project: ${project}`;
+    if (!isAiProject(project)) {
+      return AI_UNAVAILABLE_MESSAGE;
     }
     if (!chipName || chipName === "") {
-      return "No chip is currently loaded. Please select a chip first.";
+      return "Open a chip first, then ask for a hint.";
     }
     if (!hdlContent || hdlContent.trim() === "") {
-      return "Current HDL file is empty.";
+      return "Your HDL file is empty. Write some code first.";
     }
     return undefined;
   }, [project, chipName, hdlContent]);
@@ -75,19 +93,20 @@ export function useAiCompare(
         const errorData = await response
           .json()
           .catch(() => ({ error: "Unknown error" }));
-        throw new Error(errorData.error || `Server error: ${response.status}`);
+        console.error("AI endpoint error:", response.status, errorData);
+        handlers.onError?.(describeServerError(response.status, chipName));
+        return;
       }
 
       const feedback = await response.text();
       console.log("AI Response:", feedback);
       handlers.onSuccess?.(feedback);
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An error occurred while comparing files";
-      console.error("Error calling AI endpoint:", message);
-      handlers.onError?.(message);
+      // fetch only throws on network failures (offline, DNS, CORS)
+      console.error("Error calling AI endpoint:", error);
+      handlers.onError?.(
+        "Couldn't reach the AI service. Check your internet connection and try again.",
+      );
     }
   }, [chipName, hdlContent, handlers, project, validateInputs]);
 
