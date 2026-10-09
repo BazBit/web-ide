@@ -4,7 +4,6 @@ import {
   BaseContext,
   useBaseContext,
 } from "@nand2tetris/components/stores/base.context.js";
-import { en } from "make-plural/plurals";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { AppContext, useAppContext } from "./App.context";
@@ -27,11 +26,6 @@ import { updateVersion } from "./versions";
 
 i18n.load("en", messages.messages);
 i18n.load("en-PL", plMessages.messages);
-i18n.loadLocaleData({
-  en: { plurals: en },
-  "en-US": { plurals: en },
-  "en-PL": { plurals: en },
-});
 i18n.activate(navigator.language);
 
 type STATE = "none" | "initializing" | "initialized";

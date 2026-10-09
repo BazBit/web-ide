@@ -12,11 +12,11 @@
   },
   "devDependencies": {
     "@davidsouther/jiffies": "2.2.5",
-    "@lingui/cli": "^5.0.0",
-    "@lingui/macro": "^5.0.0",
-    "@lingui/react": "^5.0.0",
-    "@lingui/swc-plugin": "^6.0.0",
-    "@lingui/vite-plugin": "^5.0.0",
+    "@lingui/cli": "~6.6.0",
+    "@lingui/core": "~6.6.0",
+    "@lingui/react": "~6.6.0",
+    "@lingui/swc-plugin": "~6.6.0",
+    "@lingui/vite-plugin": "~6.6.0",
     "@monaco-editor/react": "^4.6.0",
     "@nand2tetris/components": "file:../components",
     "@nand2tetris/projects": "file:../projects",
@@ -31,7 +31,6 @@
     "@vitest/coverage-v8": "^4.1.5",
     "immer": "^11.1.4",
     "jszip": "^3.10.1",
-    "make-plural": "^7.5.0",
     "ohm-js": "^17.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -84,7 +83,6 @@
           "public"
         ]
       }
-    ],
-    "format": "po"
+    ]
   }
 }
