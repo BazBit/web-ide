@@ -28,11 +28,13 @@ import { isErr, Ok } from "@davidsouther/jiffies/lib/esm/result.js";
 import { TestPanel } from "../shell/test_panel";
 import { AppContext } from "../App.context";
 import { PageContext } from "../Page.context";
+import { useAiCompare } from "../hooks/useAiCompare";
 import { registerCustomChip, resetCustomChips } from "../languages/hdl";
 import { reloadHdlLanguage } from "../languages/loader";
 import { Editor } from "../shell/editor";
 import { Accordian, Panel } from "../shell/panel";
 import { zip } from "../shell/zip";
+import { AIResponse, AIStatus } from "./AIResponse";
 
 interface CompileInput {
   hdl: string;
@@ -53,6 +55,10 @@ export const Chip = () => {
   const [out, setOut] = useStateInitializer(state.files.out);
   const [tstDir, setTstDir] = useStateInitializer(state.dir);
   const [tstPath, setTstPath] = useState<string>();
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiStatus, setAiStatus] = useState<AIStatus>("idle");
+  const [aiFeedback, setAiFeedback] = useState<string>();
+  const [aiError, setAiError] = useState<string>();
 
   useEffect(() => {
     if (tstPath) {
@@ -122,6 +128,36 @@ export const Chip = () => {
   useEffect(() => {
     tracking.trackEvent("action", "setProject", state.controls.project);
     tracking.trackEvent("action", "setChip", state.controls.chipName);
+  }, []);
+
+  const { triggerAi } = useAiCompare(
+    {
+      project: state.controls.project,
+      chipName: state.controls.chipName,
+      hdlContent: hdl,
+    },
+    {
+      onStart: () => {
+        setAiStatus("loading");
+        setAiFeedback(undefined);
+        setAiError(undefined);
+        setAiDialogOpen(true);
+      },
+      onSuccess: (feedback) => {
+        setAiStatus("success");
+        setAiFeedback(feedback);
+        setAiDialogOpen(true);
+      },
+      onError: (message) => {
+        setAiStatus("error");
+        setAiError(message);
+        setAiDialogOpen(true);
+      },
+    },
+  );
+
+  const closeAiDialog = useCallback(() => {
+    setAiDialogOpen(false);
   }, []);
 
   const doEval = useCallback(() => {
@@ -299,6 +335,16 @@ export const Chip = () => {
             >
               ⬇️
             </button>
+            <button
+              className="ai-trigger-button"
+              data-tooltip={t`Send HDL to AI`}
+              data-placement="bottom"
+              onClick={triggerAi}
+              disabled={state.controls.chipName === ""}
+              aria-label={t`Ask AI for feedback`}
+            >
+              🤖
+            </button>
           </fieldset>
         </>
       }
@@ -464,6 +510,14 @@ export const Chip = () => {
         {pinsPanel}
         {testPanel}
       </div>
+      <AIResponse
+        open={aiDialogOpen}
+        status={aiStatus}
+        feedback={aiFeedback}
+        error={aiError}
+        onClose={closeAiDialog}
+        onRetry={triggerAi}
+      />
     </>
   );
 };
