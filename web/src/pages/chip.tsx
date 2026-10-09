@@ -28,7 +28,11 @@ import { isErr, Ok } from "@davidsouther/jiffies/lib/esm/result.js";
 import { TestPanel } from "../shell/test_panel";
 import { AppContext } from "../App.context";
 import { PageContext } from "../Page.context";
-import { useAiCompare } from "../hooks/useAiCompare";
+import {
+  AI_UNAVAILABLE_MESSAGE,
+  isAiProject,
+  useAiCompare,
+} from "../hooks/useAiCompare";
 import { registerCustomChip, resetCustomChips } from "../languages/hdl";
 import { reloadHdlLanguage } from "../languages/loader";
 import { Editor } from "../shell/editor";
@@ -159,6 +163,8 @@ export const Chip = () => {
   const closeAiDialog = useCallback(() => {
     setAiDialogOpen(false);
   }, []);
+
+  const aiAvailable = isAiProject(state.controls.project);
 
   const doEval = useCallback(() => {
     actions.eval();
@@ -336,14 +342,24 @@ export const Chip = () => {
               ⬇️
             </button>
             <button
-              className="ai-trigger-button"
-              data-tooltip={t`Send HDL to AI`}
+              className={`ai-trigger-button${aiAvailable ? "" : " unavailable"}`}
+              data-tooltip={
+                aiAvailable
+                  ? "Get an AI hint for this chip"
+                  : AI_UNAVAILABLE_MESSAGE
+              }
               data-placement="bottom"
               onClick={triggerAi}
-              disabled={state.controls.chipName === ""}
-              aria-label={t`Ask AI for feedback`}
+              disabled={state.controls.chipName === "" || aiStatus === "loading"}
+              aria-busy={aiStatus === "loading"}
             >
-              🤖
+              {aiStatus === "loading" ? (
+                "Thinking…"
+              ) : (
+                <>
+                  <span aria-hidden="true">🤖</span> Ask AI
+                </>
+              )}
             </button>
           </fieldset>
         </>
@@ -513,6 +529,7 @@ export const Chip = () => {
       <AIResponse
         open={aiDialogOpen}
         status={aiStatus}
+        chipName={state.controls.chipName}
         feedback={aiFeedback}
         error={aiError}
         onClose={closeAiDialog}
